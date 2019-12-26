@@ -294,19 +294,18 @@ assert rotate_squares((0, 1, 2, 3, 4, 5, 6, 7, 8)
 
 
 def update_weights(weights, picked_squares, modifier):
-    if (modifier != 0):
-        for normalized_squares, square in picked_squares:
-            value, observations = (DEFAULT_WEIGHT, 0)
-            weight_keys = get_weight_keys(normalized_squares, square)
+    for normalized_squares, square in picked_squares:
+        value, observations = (DEFAULT_WEIGHT, 0)
+        weight_keys = get_weight_keys(normalized_squares, square)
 
-            for weight_key in weight_keys:
-                if (weights.get(weight_key)):
-                    value, observations = weights.get(weight_key)
-                    break
+        for weight_key in weight_keys:
+            if (weights.get(weight_key)):
+                value, observations = weights.get(weight_key)
+                break
 
-            updated_weight = get_updated_weight(value, observations, modifier)
+        updated_weight = get_updated_weight(value, observations, modifier)
 
-            weights[weight_key] = (updated_weight, observations + 1)
+        weights[weight_key] = (updated_weight, observations + 1)
 
 
 def main():
