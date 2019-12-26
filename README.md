@@ -10,3 +10,4 @@ While looping through games, the final board position for each is displayed. Als
 
 - add more assertions
 - verify checking other orientations is working when getting/updating weights
+- save/load weights to/from file

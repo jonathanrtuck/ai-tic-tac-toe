@@ -260,6 +260,7 @@ def print_percentage(decimal):
 
     for i in range(100):
         print('─' if i < percentage else ' ', end="")
+
     print('│', '{0: >4}'.format(str(percentage) + '%'))
 
 
@@ -309,7 +310,7 @@ def update_weights(weights, picked_squares, modifier):
 
 
 def main():
-    results = []
+    results = []  # only used for displaying percentage of draws
     weights = {}
 
     for _ in range(NUMBER_OF_GAMES_TO_PLAY):
@@ -324,8 +325,8 @@ def main():
 
             game.fill_square(square)
 
-        for char in players:
-            players[char].update_weights(weights, game.winner)
+        for player in players.values():
+            player.update_weights(weights, game.winner)
 
         results.append(game.winner)
 
@@ -333,8 +334,8 @@ def main():
         print_squares(game.squares)
         print_percentage(results[-100:].count(None) / 100)
 
-    for squares, weight in sorted(weights.items()):
-        print(squares, weight)
+    for key, weight in sorted(weights.items()):
+        print(key, weight)
 
 
 if __name__ == "__main__":
