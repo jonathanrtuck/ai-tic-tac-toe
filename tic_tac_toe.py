@@ -1,294 +1,125 @@
-from random import choices
-from os import system
+from constants import EMPTY, O, X
+from math import sqrt
+from output import clear, print_percentage, print_board
+from random import choice
+from utils import get_is_draw, get_is_full, get_normalized_squares, get_other_player, get_result, get_squares, get_winner, Result, set_squares
 
-DEFAULT_WEIGHT = 50
-MAX_WEIGHT = 100
-MIN_WEIGHT = 0
-NUMBER_OF_GAMES_TO_PLAY = 1
+NUMBER_OF_GAMES_TO_PLAY = 100
+
+
+class Board:
+    def __init__(self):
+        self.clear()
+
+        self.is_full = False
+
+    def clear(self):
+        self.squares = tuple([EMPTY for _ in range(9)])
+
+    def play(self, player, square):
+        self.squares = set_squares(self.squares, square, player)
+        self.is_full = get_is_full(self.squares)
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, board):
+        self.board = board
         self.is_draw = False
         self.is_over = False
-        self.squares = tuple([' ' for _ in range(9)])
-        self.turn = 'x'
+        self.moves = []
+        self.turn = X
         self.winner = None
 
-    def fill_square(self, index):
-        self.squares = self.squares[0:index] + \
-            (self.turn,) + self.squares[index + 1:9]
+    def play(self, square):
+        self.moves.append((self.board.squares, square, self.turn))
 
-        self.is_draw = get_is_draw(self.squares)
-        self.is_over = get_is_over(self.squares)
-        self.turn = get_other_char(self.turn)
-        self.winner = get_winner(self.squares)
+        self.board.play(self.turn, square)
+
+        self.is_draw = get_is_draw(self.board.squares)
+        self.winner = get_winner(self.board.squares)
+        self.is_over = self.board.is_full or self.winner
+
+        self.turn = get_other_player(self.turn)
+
+    def save(self, data):
+        for squares, square, player in self.moves:
+            normalized_squares = get_normalized_squares(squares, player)
+
+            set_data(data, normalized_squares, square,
+                     get_result(player, self.winner))
 
 
 class Player:
-    def __init__(self, char):
-        self.char = char
-        self.picked_squares = []
+    def __init__(self, symbol):
+        self.symbol = symbol
 
-    def pick_square(self, squares, weights):
-        normalized_squares = get_normalized_squares(squares, self.char)
-        empty_squares = get_squares(normalized_squares, ' ')
-        empty_squares_weights = get_weights(normalized_squares, weights)
-        square = choices(empty_squares, empty_squares_weights)[0]
+    def move(self, board, data):
+        empty_squares = get_squares(board.squares, EMPTY)
+        normalized_squares = get_normalized_squares(board.squares, self.symbol)
+        weights = [get_weight(data, normalized_squares, square)
+                   for square in empty_squares]
+        highest_weight = max(weights)
+        highest_weight_empty_squares = [empty_squares[i] for i, weight in enumerate(
+            weights) if weight == highest_weight]
 
-        self.picked_squares.append((normalized_squares, square))
+        return choice(highest_weight_empty_squares)
 
-        return square
 
-    def update_weights(self, weights, winner):
-        modifier = 0
+def get_key(squares, square):
+    return str(squares) + str(square)
 
-        if (winner == self.char):
-            modifier = 1
-        elif (winner == get_other_char(self.char)):
-            modifier = -1
 
-        update_weights(weights, self.picked_squares, modifier)
+def get_weight(data, squares, square):
+    key = get_key(squares, square)
 
+    (wins, losses, draws) = data.get(key, (0, 0, 0))
 
-def get_column(squares, index):
-    return squares[index::3]
+    weight = ((wins - losses) * 10) + 50
 
+    return (0 if weight < 0 else 100 if weight > 100 else weight) ** 3
 
-def get_flipped_square(square):
-    """horizontally"""
-    return square + ((square % 3 - 1) * -2)
 
+def set_data(data, squares, square, result):
+    key = get_key(squares, square)
 
-def get_flipped_squares(squares):
-    """horizontally"""
-    return squares[2::-1] + squares[5:2:-1] + squares[8:5:-1]
+    (wins, losses, draws) = data.get(key, (0, 0, 0))
 
-
-def get_is_draw(squares):
-    is_full = get_is_full(squares)
-    is_winner = get_is_winner(squares)
-
-    return is_full and not is_winner
-
-
-def get_is_full(squares):
-    return squares.count(' ') == 0
-
-
-def get_is_over(squares):
-    return get_is_full(squares) or get_winner(squares) != None
-
-
-def get_is_winner(squares):
-    return get_winner(squares) != None
-
-
-# TODO choose better characters
-def get_normalized_square(square, player):
-    if (square == player):
-        return 'm'
-    elif (square == get_other_char(player)):
-        return 'y'
-    else:
-        return square
-
-
-def get_normalized_squares(squares, player):
-    return tuple([get_normalized_square(square, player) for square in squares])
-
-
-def get_other_char(char):
-    if (char == 'o'):
-        return 'x'
-    elif (char == 'x'):
-        return 'o'
-    else:
-        return None
-
-
-def get_rotate_square(square):
-    """clockwise"""
-    return ((square * 3 + 2) % 9) - (square // 3)
-
-
-def get_rotate_squares(squares):
-    """clockwise"""
-    return squares[6::-3] + squares[7::-3] + squares[8::-3]
-
-
-def get_row(squares, index):
-    offset = index * 3
-
-    return squares[offset:offset + 3]
-
-
-def get_squares(squares, char):
-    return [i for i in range(9) if squares[i] == char]
-
-
-def get_updated_weight(weight, observations, modifier):
-    if not modifier:
-        return weight
-
-    neutral_weight = (MAX_WEIGHT - MIN_WEIGHT) / 2
-    # closest distance from 0 or 100
-    uncertainty = neutral_weight - abs(neutral_weight - weight)
-    strength = 1 / ((observations // 9) + 2)
-
-    return weight + (modifier * uncertainty * strength)
-
-
-# TODO assertions
-def get_weight(weights, normalized_squares, square):
-    weight_keys = get_weight_keys(normalized_squares, square)
-
-    for weight_key in weight_keys:
-        if (weights.get(weight_key)):
-            return weights.get(weight_key)[0]
-
-    return DEFAULT_WEIGHT
-
-
-def get_weight_key(normalized_squares, square):
-    return str(normalized_squares) + str(square)
-
-
-# TODO assertions
-def get_weight_keys(normalized_squares, square):
-    weight_keys = []
-
-    oriented_squares = normalized_squares
-    oriented_square = square
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_flipped_squares(oriented_squares)
-    oriented_square = get_flipped_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    oriented_squares = get_rotate_squares(oriented_squares)
-    oriented_square = get_rotate_square(oriented_square)
-    weight_key = get_weight_key(oriented_squares, oriented_square)
-    weight_keys.append(weight_key)
-
-    return weight_keys
-
-
-# TODO assertions
-def get_weights(normalized_squares, weights):
-    empty_squares = get_squares(normalized_squares, ' ')
-    weights = [get_weight(weights, normalized_squares, square)
-               for square in empty_squares]
-
-    return weights
-
-
-def get_winner(squares):
-    columns = [get_column(squares, i) for i in range(3)]
-    rows = [get_row(squares, i) for i in range(3)]
-    diagonals = [
-        squares[::4],
-        squares[2:7:2],
-    ]
-
-    lines = columns + rows + diagonals
-
-    for line in lines:
-        if (line.count('x') == 3):
-            return 'x'
-
-        if (line.count('o') == 3):
-            return 'o'
-
-    return None
-
-
-def print_percentage(decimal):
-    percentage = round(decimal * 100)
-
-    for i in range(100):
-        print('─' if i < percentage else ' ', end="")
-
-    print('│', '{0: >4}'.format(str(percentage) + '%'))
-
-
-def print_squares(squares):
-    rows = [' ' + " | ".join(get_row(squares, i)) + ' ' for i in range(3)]
-
-    print('\n')
-    print("\n-----------\n".join(rows))
-    print('\n')
-
-
-def update_weights(weights, picked_squares, modifier):
-    for normalized_squares, square in picked_squares:
-        value, observations = (DEFAULT_WEIGHT, 0)
-        weight_keys = get_weight_keys(normalized_squares, square)
-
-        for weight_key in weight_keys:
-            if (weights.get(weight_key)):
-                value, observations = weights.get(weight_key)
-                break
-
-        updated_weight = get_updated_weight(value, observations, modifier)
-
-        weights[weight_key] = (updated_weight, observations + 1)
+    data[key] = (
+        wins + 1 if result == Result.Win else wins,
+        losses + 1 if result == Result.Loss else losses,
+        draws + 1 if result == Result.Draw else draws,
+    )
 
 
 def main():
+    data = {}
     results = []  # only used for displaying percentage of draws
-    weights = {}
+
+    board = Board()
 
     for _ in range(NUMBER_OF_GAMES_TO_PLAY):
-        game = Game()
+        game = Game(board)
         players = {
-            'o': Player('o'),
-            'x': Player('x'),
+            O: Player(O),
+            X: Player(X),
         }
 
         while (not game.is_over):
-            square = players[game.turn].pick_square(game.squares, weights)
+            square = players[game.turn].move(game.board, data)
 
-            game.fill_square(square)
-
-        for player in players.values():
-            player.update_weights(weights, game.winner)
+            game.play(square)
 
         results.append(game.winner)
 
-        system('clear')
-        print_squares(game.squares)
+        clear()
+        print_board(game.board.squares)
         print_percentage(results[-100:].count(None) / 100)
 
-    for key, weight in sorted(weights.items()):
-        print(key, weight)
+        game.save(data)
+        game.board.clear()
+
+    for key, move_data in sorted(data.items()):
+        print(key, move_data)
 
 
 if __name__ == "__main__":
