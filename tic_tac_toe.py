@@ -5,7 +5,7 @@ from math import sqrt
 from output import clear, print_board, print_data, print_percentage
 from random import choice
 
-NUMBER_OF_GAMES_TO_PLAY = 1000
+NUMBER_OF_GAMES_TO_PLAY = 500
 
 
 class Game:
@@ -52,22 +52,13 @@ class Player:
 def get_weight(data, position):
     (wins, losses, draws) = data.get(position, (0, 0, 0))
 
-    if (wins > 100 and not losses and not draws):
+    if (wins and not losses and not draws):
         return 100
 
-    if (losses > 100 and not wins and not draws):
+    if (losses and not wins and not draws):
         return 0
 
-    '''
-    results = [wins, losses, draws]
-    max_result = max(results)
-    certainty = max_result - \
-        sum([result for result in results if not max_result])
-    '''
-
-    weight = ((wins - losses) * 20) + 50
-
-    return (0 if weight < 0 else 100 if weight > 100 else weight)
+    return ((wins - losses) * 10) + 50
 
 
 def get_values(symbols):
@@ -101,12 +92,11 @@ def main():
             game.play(square)
 
         results.append(game.winner)
+        game.save(data)
 
         clear()
         print_board(game.board)
         print_percentage(results[-100:].count(None) / 100)
-
-        game.save(data)
 
     print_data(data)
 

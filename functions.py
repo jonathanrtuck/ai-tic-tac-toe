@@ -16,6 +16,11 @@ def get_diagonals(board):
     ]
 
 
+def get_flipped_board(board):
+    '''horizontally'''
+    return board[2::-1] + board[5:2:-1] + board[8:5:-1]
+
+
 def get_is_draw(board):
     is_full = get_is_full(board)
     winner = get_winner(board)
@@ -39,11 +44,24 @@ def get_normalized_board(board, player):
 
 def get_position(board, square, player):
     normalized_board = get_normalized_board(board, player)
+    orientation_functions = [
+        get_rotated_board,
+        get_rotated_board,
+        get_rotated_board,
+        get_flipped_board,
+        get_rotated_board,
+        get_rotated_board,
+        get_rotated_board
+    ]
     position = get_board(normalized_board, square, Symbol.Considering)
+    positions = [position]
 
-    # TODO get all orientations, sort, and return first
+    for orientation_function in orientation_functions:
+        position = orientation_function(position)
 
-    return position
+        positions.append(position)
+
+    return sorted(positions)[0]
 
 
 def get_other_player(symbol):
@@ -63,6 +81,11 @@ def get_result(player, winner):
         return Result.Loss
 
     return Result.Draw
+
+
+def get_rotated_board(board):
+    '''clockwise'''
+    return board[6::-3] + board[7::-3] + board[8::-3]
 
 
 def get_rows(board):

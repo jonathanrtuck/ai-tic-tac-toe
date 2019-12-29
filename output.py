@@ -20,8 +20,10 @@ def print_board(board):
 
 
 def print_data(data):
-    for key, move_data in sorted(data.items()):
-        print([get_char(symbol) for symbol in key], move_data)
+    for position, results in sorted(data.items()):
+        print(list(map(get_char, position)), results)
+
+    print(len(data))
 
 
 def print_percentage(decimal):
