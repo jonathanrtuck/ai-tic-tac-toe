@@ -33,6 +33,9 @@ def get_is_full(board):
 
 
 def get_normalized_board(board, player):
+    '''
+    replace X’s and O’s with symbols representing a first-person perspective, (my squares vs. opponent’s squares).
+    '''
     return tuple(map(
         lambda square:
             Symbol.Me if square == player
@@ -43,6 +46,9 @@ def get_normalized_board(board, player):
 
 
 def get_position(board, square, player):
+    '''
+    return the first position from a sorted list of all equivelent orientations.
+    '''
     normalized_board = get_normalized_board(board, player)
     orientation_functions = [
         get_rotated_board,
@@ -93,7 +99,7 @@ def get_rows(board):
 
 
 def get_squares(board, symbol):
-    return [i for i in range(9) if board[i] == symbol]
+    return [i for i, square in enumerate(board) if square == symbol]
 
 
 def get_winner(board):

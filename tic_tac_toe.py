@@ -50,6 +50,11 @@ class Player:
 
 
 def get_weight(data, position):
+    '''
+    if this position has always lead to a win, return the maximum weight.
+    if this position has always lead to a loss, return the minimum weight.
+    otherwise return a weight based on the number of wins vs. losses observed so far
+    '''
     (wins, losses, draws) = data.get(position, (0, 0, 0))
 
     if (wins and not losses and not draws):
@@ -61,11 +66,8 @@ def get_weight(data, position):
     return ((wins - losses) * 10) + 50
 
 
-def get_values(symbols):
-    return [symbol.value for symbol in symbols]
-
-
 def set_data(data, position, result):
+    '''create/update this position’s results in the data dictionary'''
     (wins, losses, draws) = data.get(position, (0, 0, 0))
 
     data[position] = (
