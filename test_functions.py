@@ -5,6 +5,8 @@ from functions import (get_board, get_columns, get_diagonals, get_is_draw, get_i
 _ = Symbol.Empty
 X = Symbol.X
 O = Symbol.O
+M = Symbol.Me
+Y = Symbol.Opponent
 
 assert get_columns((0, 1, 2, 3, 4, 5, 6, 7, 8)) == [
     (0, 3, 6), (1, 4, 7), (2, 5, 8)]
@@ -21,7 +23,8 @@ assert not get_is_full((X, O, X, O, X, O, X, O, _))
 assert not get_is_full((_, X, O, X, O, X, O, X, O))
 assert get_is_full((X, O, X, O, X, O, X, O, X))
 
-# TODO get_normalized_board
+assert get_normalized_board(board=(X, X, X, O, O, O, _, _, _), player=X) == (
+    M, M, M, Y, Y, Y, _, _, _)
 
 assert get_other_player(X) == O
 assert get_other_player(O) == X
@@ -29,12 +32,12 @@ assert get_other_player(_) == None
 
 # TODO get_position
 
-assert get_result(X, X) == Result.Win
-assert get_result(O, O) == Result.Win
-assert get_result(X, O) == Result.Loss
-assert get_result(O, X) == Result.Loss
-assert get_result(X, None) == Result.Draw
-assert get_result(O, None) == Result.Draw
+assert get_result(player=X, winner=X) == Result.Win
+assert get_result(player=X, winner=O) == Result.Loss
+assert get_result(player=X, winner=None) == Result.Draw
+assert get_result(player=O, winner=O) == Result.Win
+assert get_result(player=O, winner=X) == Result.Loss
+assert get_result(player=O, winner=None) == Result.Draw
 
 assert get_rows((0, 1, 2, 3, 4, 5, 6, 7, 8)) == [
     (0, 1, 2), (3, 4, 5), (6, 7, 8)]
@@ -56,7 +59,7 @@ assert get_winner((_, _, _, O, O, O, _, _, _)) == O
 assert get_winner((X, _, _, _, X, _, _, _, X)) == X
 assert get_winner((_, _, O, _, O, _, O, _, _)) == O
 
-assert get_board((_, _, _, _, _, _, _, _, _), 0,
-                 X) == (X, _, _, _, _, _, _, _, _)
-assert get_board((_, _, _, _, _, _, _, _, _), 8,
-                 O) == (_, _, _, _, _, _, _, _, O)
+assert get_board(board=(_, _, _, _, _, _, _, _, _), square=0,
+                 symbol=X) == (X, _, _, _, _, _, _, _, _)
+assert get_board(board=(_, _, _, _, _, _, _, _, _), square=8,
+                 symbol=O) == (_, _, _, _, _, _, _, _, O)
