@@ -6,11 +6,11 @@ On execution, the AI plays itself a set number of times, updating the `data` for
 
 While looping through games, the final board position for each is displayed. Also displayed is the percentage of draws from the most recent 100 games. It is assumed that, as the AI learns, the percentage of draws should approach 100%.
 
-There are 2,096 possible positions to evaluate.
+There are 2,096 possible position moves to evaluate.
 
 ## todo
 
-- complete learning algorithm
-- update/complete documentation
+- ~~complete learning algorithm~~
 - save/load weights to/from file
 - support human player
+- update readme
