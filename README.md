@@ -8,6 +8,8 @@ While looping through games, the final board position for each is displayed. Als
 
 ## todo
 
+- check other orientations when getting/setting data
+  - use first sorted when saving
 - complete learning algorithm
 - update/complete documentation
 - save/load weights to/from file

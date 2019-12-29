@@ -1,5 +1,0 @@
-EMPTY = ' '
-ME = '✅'
-O = 'o'
-OPPONENT = '❌'
-X = 'x'

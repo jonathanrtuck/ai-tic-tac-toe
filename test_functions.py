@@ -1,5 +1,10 @@
-from constants import EMPTY as _, O, X
-from utils import get_columns, get_diagonals, get_is_draw, get_is_full, get_other_player, get_result, get_rows, get_squares, get_winner, Result, set_squares
+from enums import Result, Symbol
+from functions import (get_board, get_columns, get_diagonals, get_is_draw, get_is_full, get_normalized_board,
+                       get_other_player, get_position, get_result, get_rows, get_squares, get_winner)
+
+_ = Symbol.Empty
+X = Symbol.X
+O = Symbol.O
 
 assert get_columns((0, 1, 2, 3, 4, 5, 6, 7, 8)) == [
     (0, 3, 6), (1, 4, 7), (2, 5, 8)]
@@ -16,9 +21,13 @@ assert not get_is_full((X, O, X, O, X, O, X, O, _))
 assert not get_is_full((_, X, O, X, O, X, O, X, O))
 assert get_is_full((X, O, X, O, X, O, X, O, X))
 
+# TODO get_normalized_board
+
 assert get_other_player(X) == O
 assert get_other_player(O) == X
 assert get_other_player(_) == None
+
+# TODO get_position
 
 assert get_result(X, X) == Result.Win
 assert get_result(O, O) == Result.Win
@@ -47,7 +56,7 @@ assert get_winner((_, _, _, O, O, O, _, _, _)) == O
 assert get_winner((X, _, _, _, X, _, _, _, X)) == X
 assert get_winner((_, _, O, _, O, _, O, _, _)) == O
 
-assert set_squares((_, _, _, _, _, _, _, _, _), 0,
-                   X) == (X, _, _, _, _, _, _, _, _)
-assert set_squares((_, _, _, _, _, _, _, _, _), 8,
-                   O) == (_, _, _, _, _, _, _, _, O)
+assert get_board((_, _, _, _, _, _, _, _, _), 0,
+                 X) == (X, _, _, _, _, _, _, _, _)
+assert get_board((_, _, _, _, _, _, _, _, _), 8,
+                 O) == (_, _, _, _, _, _, _, _, O)

@@ -1,52 +1,37 @@
-from constants import EMPTY, O, X
+from enums import Result, Symbol
+from functions import (get_board, get_is_draw, get_is_full,
+                       get_other_player, get_position, get_result, get_squares, get_winner)
 from math import sqrt
-from output import clear, print_percentage, print_board
+from output import clear, print_board, print_data, print_percentage
 from random import choice
-from utils import get_is_draw, get_is_full, get_normalized_squares, get_other_player, get_result, get_squares, get_winner, Result, set_squares
 
-NUMBER_OF_GAMES_TO_PLAY = 100
-
-
-class Board:
-    def __init__(self):
-        self.clear()
-
-        self.is_full = False
-
-    def clear(self):
-        self.squares = tuple([EMPTY for _ in range(9)])
-
-    def play(self, player, square):
-        self.squares = set_squares(self.squares, square, player)
-        self.is_full = get_is_full(self.squares)
+NUMBER_OF_GAMES_TO_PLAY = 1000
 
 
 class Game:
-    def __init__(self, board):
-        self.board = board
+    def __init__(self):
+        self.board = tuple([Symbol.Empty for _ in range(9)])
         self.is_draw = False
-        self.is_over = False
         self.moves = []
-        self.turn = X
+        self.turn = Symbol.X
         self.winner = None
 
     def play(self, square):
-        self.moves.append((self.board.squares, square, self.turn))
+        self.moves.append((self.board, square, self.turn))
 
-        self.board.play(self.turn, square)
+        self.board = get_board(self.board, square, self.turn)
 
-        self.is_draw = get_is_draw(self.board.squares)
-        self.winner = get_winner(self.board.squares)
-        self.is_over = self.board.is_full or self.winner
+        self.is_draw = get_is_draw(self.board)
+        self.winner = get_winner(self.board)
 
         self.turn = get_other_player(self.turn)
 
     def save(self, data):
-        for squares, square, player in self.moves:
-            normalized_squares = get_normalized_squares(squares, player)
+        for board, square, player in self.moves:
+            position = get_position(board, square, player)
+            result = get_result(player, self.winner)
 
-            set_data(data, normalized_squares, square,
-                     get_result(player, self.winner))
+            set_data(data, position, result)
 
 
 class Player:
@@ -54,10 +39,9 @@ class Player:
         self.symbol = symbol
 
     def move(self, board, data):
-        empty_squares = get_squares(board.squares, EMPTY)
-        normalized_squares = get_normalized_squares(board.squares, self.symbol)
-        weights = [get_weight(data, normalized_squares, square)
-                   for square in empty_squares]
+        empty_squares = get_squares(board, Symbol.Empty)
+        weights = [get_weight(data, get_position(
+            board, square, self.symbol)) for square in empty_squares]
         highest_weight = max(weights)
         highest_weight_empty_squares = [empty_squares[i] for i, weight in enumerate(
             weights) if weight == highest_weight]
@@ -65,26 +49,35 @@ class Player:
         return choice(highest_weight_empty_squares)
 
 
-def get_key(squares, square):
-    return str(squares) + str(square)
+def get_weight(data, position):
+    (wins, losses, draws) = data.get(position, (0, 0, 0))
+
+    if (wins > 100 and not losses and not draws):
+        return 100
+
+    if (losses > 100 and not wins and not draws):
+        return 0
+
+    '''
+    results = [wins, losses, draws]
+    max_result = max(results)
+    certainty = max_result - \
+        sum([result for result in results if not max_result])
+    '''
+
+    weight = ((wins - losses) * 20) + 50
+
+    return (0 if weight < 0 else 100 if weight > 100 else weight)
 
 
-def get_weight(data, squares, square):
-    key = get_key(squares, square)
-
-    (wins, losses, draws) = data.get(key, (0, 0, 0))
-
-    weight = ((wins - losses) * 10) + 50
-
-    return (0 if weight < 0 else 100 if weight > 100 else weight) ** 3
+def get_values(symbols):
+    return [symbol.value for symbol in symbols]
 
 
-def set_data(data, squares, square, result):
-    key = get_key(squares, square)
+def set_data(data, position, result):
+    (wins, losses, draws) = data.get(position, (0, 0, 0))
 
-    (wins, losses, draws) = data.get(key, (0, 0, 0))
-
-    data[key] = (
+    data[position] = (
         wins + 1 if result == Result.Win else wins,
         losses + 1 if result == Result.Loss else losses,
         draws + 1 if result == Result.Draw else draws,
@@ -95,16 +88,14 @@ def main():
     data = {}
     results = []  # only used for displaying percentage of draws
 
-    board = Board()
-
     for _ in range(NUMBER_OF_GAMES_TO_PLAY):
-        game = Game(board)
+        game = Game()
         players = {
-            O: Player(O),
-            X: Player(X),
+            Symbol.O: Player(Symbol.O),
+            Symbol.X: Player(Symbol.X),
         }
 
-        while (not game.is_over):
+        while (not game.winner and not game.is_draw):
             square = players[game.turn].move(game.board, data)
 
             game.play(square)
@@ -112,15 +103,13 @@ def main():
         results.append(game.winner)
 
         clear()
-        print_board(game.board.squares)
+        print_board(game.board)
         print_percentage(results[-100:].count(None) / 100)
 
         game.save(data)
-        game.board.clear()
 
-    for key, move_data in sorted(data.items()):
-        print(key, move_data)
+    print_data(data)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
