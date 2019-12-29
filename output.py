@@ -21,9 +21,7 @@ def print_board(board):
 
 def print_data(data):
     for key, move_data in sorted(data.items()):
-        print_board(key)
-        print(move_data)
-        print('\n')
+        print([get_char(symbol) for symbol in key], move_data)
 
 
 def print_percentage(decimal):
