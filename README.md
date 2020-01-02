@@ -10,7 +10,6 @@ There are 2,096 possible position moves to evaluate.
 
 ## todo
 
-- ~~complete learning algorithm~~
-- save/load weights to/from file
+- complete learning algorithm
 - support human player
 - update readme

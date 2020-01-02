@@ -1,6 +1,6 @@
 from enums import Result, Symbol
-from functions import (get_board, get_columns, get_diagonals, get_flipped_board, get_is_draw, get_is_full,
-                       get_normalized_board, get_other_player, get_position, get_result, get_rotated_board, get_rows, get_squares, get_winner)
+from tic_tac_toe import (get_board, get_columns, get_diagonals, get_flipped_board, get_is_draw, get_is_full,
+                         get_normalized_board, get_other_player, get_position, get_result, get_rotated_board, get_rows, get_squares, get_winner)
 
 _ = Symbol.Empty
 X = Symbol.X
