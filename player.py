@@ -1,6 +1,7 @@
 from board import (get_board, get_flipped_board,
                    get_rotated_board, get_squares, Symbol)
 from enum import IntEnum
+from random import choice
 
 
 class Square(IntEnum):
@@ -18,18 +19,21 @@ class Player:
 
     def get_move(self, board):
         squares = get_squares(board, Symbol.Empty)
-        square = squares[0]
-        position = get_position(board, square, self.symbol)
+        weights = [get_weight(get_position(
+            board, square, self.symbol), self.data) for square in squares]
+        highest_weight = max(weights)
+        highest_weight_squres = [squares[i] for i, weight in enumerate(
+            weights) if weight == highest_weight]
+        picked_square = choice(highest_weight_squres)
+        position = get_position(board, picked_square, self.symbol)
 
         self.positions.append(position)
 
-        return square
+        return picked_square
 
 
 def get_normalized_board(board, player):
-    '''
-    replace X’s and O’s with values representing a first-person perspective, (my squares vs. your squares).
-    '''
+    '''replace X’s and O’s with values representing a first-person perspective, (my squares vs. your squares).'''
     return tuple(map(
         lambda square:
             Square.Mine if square == player
@@ -50,9 +54,7 @@ def get_other_player(symbol):
 
 
 def get_position(board, square, player):
-    '''
-    return the first position from a sorted list of all equivelent orientations.
-    '''
+    '''return the first position from a sorted list of all equivelent orientations.'''
     normalized_board = get_normalized_board(board, player)
     orientation_functions = [
         get_rotated_board,
@@ -72,3 +74,7 @@ def get_position(board, square, player):
         positions.append(position)
 
     return sorted(positions)[0]
+
+
+def get_weight(position, data):
+    return 50

@@ -48,12 +48,12 @@ def get_squares(board, symbol):
 
 
 def print_board(board):
-    chars = {
+    symbol_chars = {
         Symbol.Empty: ' ',
         Symbol.X: 'X',
         Symbol.O: 'O',
     }
-    rows = ['│'.join([' {0} '.format(chars[symbol]) for symbol in row])
+    rows = ['│'.join([' {0} '.format(symbol_chars[symbol]) for symbol in row])
             for row in get_rows(board)]
 
     print('\n───┼───┼───\n'.join(rows))

@@ -3,7 +3,7 @@ from data import print_data, read_data, set_data, write_data
 from game import Game, get_result
 from player import Player
 
-NUMBER_OF_GAMES_TO_PLAY = 10
+NUMBER_OF_GAMES_TO_PLAY = 1000
 
 
 def print_percentage(decimal):

@@ -23,8 +23,8 @@ class Game:
 
             self.play(square)
 
-            system('clear')
-            print_board(self.board)
+        system('clear')
+        print_board(self.board)
 
     def play(self, square):
         self.board = get_board(self.board, square, self.turn)
