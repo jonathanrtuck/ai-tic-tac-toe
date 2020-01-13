@@ -1,7 +1,10 @@
 from board import (get_board, get_flipped_board,
-                   get_rotated_board, get_squares, Symbol)
+                   get_rotated_board, get_squares, print_board, Symbol)
 from enum import IntEnum
+from os import system
 from random import choice
+
+NUMBER_OF_RESULTS_TO_CONSIDER = 50
 
 
 class Square(IntEnum):
@@ -11,7 +14,7 @@ class Square(IntEnum):
     Considering = 3
 
 
-class Player:
+class Ai:
     def __init__(self, symbol, data):
         self.data = data
         self.positions = []
@@ -30,6 +33,41 @@ class Player:
         self.positions.append(position)
 
         return picked_square
+
+
+class Human:
+    def __init__(self, symbol, data):
+        self.data = data
+        self.symbol = symbol
+
+    def get_move(self, board):
+        system('clear')
+        print_board(board)
+
+        squares = get_squares(board, Symbol.Empty)
+        weights = [get_weight(get_position(
+            board, square, self.symbol), self.data) for square in squares]
+
+        print('weights: ', weights)
+
+        return self.get_square_input(squares)
+
+    def get_square_input(self, options):
+        '''recursive'''
+        symbol_chars = {
+            Symbol.X: 'X',
+            Symbol.O: 'O',
+        }
+        text = input('Enter a square for {0} (0–8): '.format(
+            symbol_chars[self.symbol]))
+
+        if (text.isdigit()):
+            index = int(text)
+
+            if (options.count(index)):
+                return index
+
+        return self.get_square_input(options)
 
 
 def get_normalized_board(board, player):
@@ -77,4 +115,15 @@ def get_position(board, square, player):
 
 
 def get_weight(position, data):
-    return 50
+    results = data.get(position, [])
+
+    if (len(results) < NUMBER_OF_RESULTS_TO_CONSIDER):
+        return 50
+
+    results_to_consider = results[-NUMBER_OF_RESULTS_TO_CONSIDER:]
+    latest_results_total = sum(results_to_consider)
+    results_weight = latest_results_total * \
+        (50 / NUMBER_OF_RESULTS_TO_CONSIDER)
+    weight = 50 + results_weight
+
+    return weight

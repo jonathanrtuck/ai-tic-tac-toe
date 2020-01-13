@@ -1,9 +1,8 @@
 from board import Symbol
 from data import print_data, read_data, set_data, write_data
 from game import Game, get_result
-from player import Player
-
-NUMBER_OF_GAMES_TO_PLAY = 1000
+from player import Ai, Human
+from sys import argv
 
 
 def print_percentage(decimal):
@@ -15,28 +14,37 @@ def print_percentage(decimal):
 
 
 def main():
+    number_of_games_to_play = int(argv[1]) if len(
+        argv) > 1 and argv[1].isdigit() else None
     data = read_data()
     results = []  # only used for displaying percentage of draws
 
-    for _ in range(NUMBER_OF_GAMES_TO_PLAY):
+    if (number_of_games_to_play):
+        for _ in range(number_of_games_to_play):
+            players = {
+                Symbol.X: Ai(Symbol.X, data),
+                Symbol.O: Ai(Symbol.O, data),
+            }
+            game = Game(players)
+
+            results.append(game.winner)
+
+            for player in players:
+                result = get_result(player, game.winner)
+
+                for position in players[player].positions:
+                    set_data(data, position, result)
+
+            print_percentage(results[-100:].count(None) / 100)
+
+        print_data(data)
+        write_data(data)
+    else:
         players = {
-            Symbol.O: Player(Symbol.O, data),
-            Symbol.X: Player(Symbol.X, data),
+            Symbol.X: Human(Symbol.X, data),
+            Symbol.O: Human(Symbol.O, data),
         }
         game = Game(players)
-
-        results.append(game.winner)
-
-        for player in players:
-            result = get_result(player, game.winner)
-
-            for position in players[player].positions:
-                set_data(data, position, result)
-
-        print_percentage(results[-100:].count(None) / 100)
-
-    print_data(data)
-    write_data(data)
 
 
 if __name__ == '__main__':
